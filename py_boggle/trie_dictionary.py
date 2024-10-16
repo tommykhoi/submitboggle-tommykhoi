@@ -22,9 +22,10 @@ class TrieDictionary:
         Load words from a file into the Trie.
         """
         try:
+            # Read file, print OSError if cannot read
             with open(filename, 'r') as wordsfile:
                 for line in wordsfile:
-                    word = line.strip().lower()  # Handle case insensitivity by lowercasing
+                    word = line.strip().lower()
                     current_node = self.root
                     for letter in word:
                         if letter not in current_node.children:

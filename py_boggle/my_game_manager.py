@@ -3,6 +3,8 @@ from typing import List, Optional, Tuple, Set
 from py_boggle.boggle_game import BoggleGame
 from py_boggle.boggle_dictionary import BoggleDictionary
 
+# Submit version
+
 SHORT = 3  # Minimum word length to score
 CUBE_SIDES = 6
 
@@ -10,14 +12,15 @@ class MyGameManager(BoggleGame):
     """Your implementation of `BoggleGame`"""
 
     def __init__(self):
-        self.board: List[List[str]] = []  # current game board
-        self.size: int = 0  # board size
-        self.words: List[str] = []  # player's current words
-        self.dictionary: BoggleDictionary = None  # the dictionary to use
-        self.last_added_word: Optional[List[Tuple[int, int]]] = None  # position of the last added word
+        self.board: List[List[str]] = []  # Game board
+        self.size: int = 0  # Board Size
+        self.words: List[str] = []  # Current Word
+        self.dictionary: BoggleDictionary = None  # Dictionary name
+        self.last_added_word: Optional[List[Tuple[int, int]]] = None  # Last word position
 
     def new_game(self, size: int, cubefile: str, dictionary: BoggleDictionary) -> None:
         """Start a new game with the given board size and dictionary"""
+        # Open file, reject if size is not appropriate
         with open(cubefile, 'r') as infile:
             faces = [line.strip().lower() for line in infile]
         cubes = [f for f in faces if len(f) == CUBE_SIDES]
@@ -43,17 +46,19 @@ class MyGameManager(BoggleGame):
         word = word.lower()
 
         def dfs(row: int, col: int, index: int, path: List[Tuple[int, int]]) -> Optional[List[Tuple[int, int]]]:
-            # Check if we have found the whole word
+            # Check if word found
             if index == len(word):
                 return path
-            # If out of bounds or already visited
+            # Check outisde board or already found
             if row < 0 or row >= self.size or col < 0 or col >= self.size or (row, col) in path:
                 return None
-            # If the letter does not match
+            # Return none if no word found
             if self.board[row][col] != word[index]:
                 return None
-            # Valid letter found, proceed to the next letter
+            # If found new word, add to path
             path.append((row, col))
+
+            # Looks for word in all direction, add to path if match
             for dRow, dCol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                 result = dfs(row + dRow, col + dCol, index + 1, path)
                 if result:
@@ -61,7 +66,7 @@ class MyGameManager(BoggleGame):
             path.pop()  # Backtrack if no valid path
             return None
 
-        # Start searching from every position on the board
+        # Start dfs in all position on board
         for row in range(self.size):
             for col in range(self.size):
                 result = dfs(row, col, 0, [])
@@ -106,11 +111,11 @@ class MyGameManager(BoggleGame):
             if not self.dictionary.is_prefix(current_string):
                 return
 
-            # If the current string is a valid word, add it to the found words
+            # If word entered and match with dictionary, add it to found_words
             if len(current_string) > SHORT and self.dictionary.contains(current_string):
                 found_words.add(current_string)
 
-            # Explore neighbors (up, down, left, right, diagonals)
+            # Looks for word in all direction
             for dRow, dCol in [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]:
                 nr, nc = row + dRow, col + dCol
                 if 0 <= nr < self.size and 0 <= nc < self.size and (nr, nc) not in visited:
